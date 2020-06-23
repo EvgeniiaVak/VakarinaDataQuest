@@ -227,3 +227,6 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# DBeaver settings
+.project
+.dbeaver

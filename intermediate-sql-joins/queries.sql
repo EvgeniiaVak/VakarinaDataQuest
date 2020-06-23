@@ -1,0 +1,177 @@
+-- Write a query that gathers data about the invoice with an invoice_id of 4. Include the following columns in order:
+
+/*
+The id of the track, track_id.
+The name of the track, track_name.
+The name of media type of the track, track_type.
+The price that the customer paid for the track, unit_price.
+The quantity of the track that was purchased, quantity.
+*/ 
+
+SELECT 
+	il.track_id, 
+	t.name AS track_name, 
+	mt.name AS track_type,
+	il.unit_price,
+	il.quantity 
+FROM invoice_line il 
+JOIN track t ON t.track_id = il.track_id 
+JOIN media_type mt ON mt.media_type_id = t.media_type_id 
+WHERE il.invoice_id = 4
+;
+
+/*
+Add a column containing the artists name to the query from the previous screen.
+The column should be called artist_name
+The column should be placed between track_name and track_type
+ */
+
+SELECT 
+	il.track_id, 
+	t.name AS track_name, 
+	a.name AS artist_name,
+	mt.name AS track_type,
+	il.unit_price,
+	il.quantity	
+FROM invoice_line il 
+JOIN track t ON t.track_id = il.track_id 
+JOIN media_type mt ON mt.media_type_id = t.media_type_id 
+JOIN album ON album.album_id = t.album_id 
+JOIN artist a ON a.artist_id = album.artist_id 
+WHERE il.invoice_id = 4
+;
+
+/*
+ * a query that lists the top 10 artists, calculated by the number of times a track by that artist has been purchased
+ */
+SELECT
+    t.track_id,
+    ar.name artist_name
+FROM track t
+INNER JOIN album al ON al.album_id = t.album_id
+INNER JOIN artist ar ON ar.artist_id = al.artist_id
+;
+
+SELECT
+    ta.artist_name artist,
+    COUNT(*) tracks_purchased
+FROM invoice_line il
+INNER JOIN (
+            SELECT
+                t.track_id,
+                ar.name artist_name
+            FROM track t
+            INNER JOIN album al ON al.album_id = t.album_id
+            INNER JOIN artist ar ON ar.artist_id = al.artist_id
+           ) ta
+           ON ta.track_id = il.track_id
+GROUP BY 1
+ORDER BY 2 DESC LIMIT 10
+;
+
+
+/*
+ * Write a query that returns the top 5 albums, 
+ * as calculated by the number of times a track from that album has been purchased. 
+ * Your query should be sorted from most tracks purchased to least tracks purchased 
+ * and return the following columns, in order:
+ * - album, the title of the album
+ * - artist, the artist who produced the album
+ * - tracks_purchased the total number of tracks purchased from that album
+*/
+
+SELECT 
+	track_id, 
+	SUM(quantity) AS tracks_purchased
+FROM invoice_line il 
+GROUP BY track_id 
+;
+
+SELECT 
+	al.title AS album,
+	SUM(tp.tracks_purchased) AS tracks_purchased
+FROM track t 
+INNER JOIN album al ON al.album_id = t.album_id 
+INNER JOIN (
+	SELECT 
+		track_id, 
+		SUM(quantity) AS tracks_purchased
+	FROM invoice_line il 
+	GROUP BY track_id 
+) AS tp
+GROUP BY album
+ORDER BY tracks_purchased DESC
+LIMIT 5
+;
+
+
+SELECT 
+	al.title AS album,
+	ar.name AS artist,
+	SUM(tp.tracks_purchased) AS tracks_purchased
+FROM track t
+INNER JOIN album al ON al.album_id = t.album_id 
+INNER JOIN artist ar ON ar.artist_id = al.artist_id 
+INNER JOIN (
+	SELECT 
+		track_id, 
+		SUM(quantity) AS tracks_purchased
+	FROM invoice_line il 
+	GROUP BY track_id 
+) AS tp ON tp.track_id = t.track_id
+GROUP BY album
+ORDER BY tracks_purchased DESC
+LIMIT 5
+;
+
+
+/*
+Write a query that returns information about each employee and their supervisor.
+The report should include employees even if they do not report to another employee.
+The report should be sorted alphabetically by the employee_name column.
+Your query should return the following columns, in order:
+employee_name - containing the first_name and last_name columns separated by a space, eg Luke Skywalker
+employee_title - the title of that employee
+supervisor_name - the first and last name of the person the employee reports to, in the same format as employee_name
+supervisor_title - the title of the person the employee reports to
+*/
+
+SELECT 
+	e.first_name || ' ' || e.last_name AS employee_name,
+	e.title AS employee_title,
+	s.first_name || ' ' || s.last_name AS supervisor_name,
+	s.title AS supervisor_title
+FROM employee e
+LEFT JOIN employee s ON s.employee_id = e.reports_to 
+ORDER BY 1
+;
+
+
+/*
+ * Write a query that summarizes the purchases of each customer. 
+ * For the purposes of this exercise, we do not have any two customers with the same name.
+Your query should include the following columns, in order:
+customer_name - containing the first_name and last_name columns separated by a space, eg Luke Skywalker.
+number_of_purchases, counting the number of purchases made by each customer.
+total_spent - the total sum of money spent by each customer.
+customer_category - a column that categorizes the customer based on their total purchases. The column should contain the following values:
+	small spender - If the customer's total purchases are less than $40.
+	big spender - If the customer's total purchases are greater than $100.
+	regular - If the customer's total purchases are between $40 and $100 (inclusive).
+Order your results by the customer_name column.
+ */
+
+SELECT 
+    c.first_name || ' ' || c.last_name AS customer_name,
+    COUNT(*) AS number_of_purchases,
+    SUM(i.total) AS total_spent,
+    CASE 
+    	WHEN SUM(i.total) < 40 THEN 'small spender'
+    	WHEN SUM(i.total) BETWEEN 40 AND 100 THEN 'regular'
+    	ELSE 'big spender'
+    END AS customer_category
+FROM customer c
+LEFT JOIN invoice i ON i.customer_id = c.customer_id
+GROUP BY customer_name
+ORDER BY customer_name
+;

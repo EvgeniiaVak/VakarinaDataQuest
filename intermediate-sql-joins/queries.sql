@@ -175,3 +175,73 @@ LEFT JOIN invoice i ON i.customer_id = c.customer_id
 GROUP BY customer_name
 ORDER BY customer_name
 ;
+
+
+/*
+ * Create a query that shows summary data for every playlist in the Chinook database:
+Use a WITH clause to create a named subquery with the following info:
+	The unique ID for the playlist.
+	The name of the playlist.
+	The name of each track from the playlist.
+	The length of each track in seconds.
+Your final table should have the following columns, in order:
+	playlist_id - the unique ID for the playlist.
+	playlist_name - The name of the playlist.
+	number_of_tracks - A count of the number of tracks in the playlist.
+	length_seconds - The sum of the length of the playlist in seconds.
+The results should be sorted by playlist_id in ascending order.
+*/
+
+SELECT 
+	p.playlist_id,
+	p.name AS playlist_name,
+	t.name AS track_name,
+	CAST(t.milliseconds AS Float) / 1000 AS seconds
+FROM playlist p
+INNER JOIN playlist_track pt ON pt.playlist_id = p.playlist_id 
+INNER JOIN track t ON t.track_id = pt.track_id
+;
+
+
+WITH ps AS 
+	(
+	SELECT 
+		p.playlist_id,
+		p.name AS playlist_name,
+		t.name AS track_name,
+		CAST(t.milliseconds AS Float) / 1000 AS seconds
+	FROM playlist p
+	INNER JOIN playlist_track pt ON pt.playlist_id = p.playlist_id 
+	INNER JOIN track t ON t.track_id = pt.track_id
+	)
+SELECT 
+	ps.playlist_id,
+	ps.playlist_name,
+	COUNT(*) AS number_of_tracks,
+	SUM(ps.seconds) AS length_seconds
+FROM ps
+GROUP BY ps.playlist_id
+ORDER BY ps.playlist_id
+;
+
+WITH ps AS 
+	(
+	SELECT 
+		p.playlist_id,
+		p.name AS playlist_name,
+		t.name AS track_name,
+		CAST(t.milliseconds AS Float) / 1000 AS seconds
+	FROM playlist p
+	LEFT JOIN playlist_track pt ON pt.playlist_id = p.playlist_id 
+	LEFT JOIN track t ON t.track_id = pt.track_id
+	)
+SELECT 
+	ps.playlist_id,
+	ps.playlist_name,
+	COUNT(*) AS number_of_tracks,
+	SUM(ps.seconds) AS length_seconds
+FROM ps
+GROUP BY ps.playlist_id, ps.playlist_name
+ORDER BY ps.playlist_id
+;
+

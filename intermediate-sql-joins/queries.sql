@@ -245,3 +245,63 @@ GROUP BY ps.playlist_id, ps.playlist_name
 ORDER BY ps.playlist_id
 ;
 
+
+/*
+ * Create a query to find the customer from each country that has spent the most money at our store, ordered alphabetically by country. 
+ * Your query should return the following columns, in order:
+ * - country - The name of each country that we have a customer from.
+ * - customer_name - The first_name and last_name of the customer from that country with the most total purchases, separated by a space, eg Luke Skywalker.
+ * - total_purchased - The total dollar amount that customer has purchased.
+ */
+
+SELECT 
+	c.customer_id, 
+	c.first_name || ' ' || c.last_name AS customer_name,
+	c.country AS country	
+FROM customer c
+;
+
+SELECT 
+	i.customer_id AS customer_id,
+	SUM(i.total) AS total
+FROM invoice i
+GROUP BY customer_id
+;
+
+SELECT 
+	i.customer_id AS customer_id,
+	c.country AS country,
+	c.first_name || ' ' || c.last_name AS customer_name,
+	SUM(i.total) AS total_purchased
+FROM customer c
+LEFT JOIN invoice i ON c.customer_id = i.customer_id 
+GROUP BY c.customer_id
+;
+
+WITH 
+	ct AS (
+		SELECT 
+			c.country AS country,
+			c.first_name || ' ' || c.last_name AS customer_name,
+			SUM(i.total) AS total_purchased
+		FROM customer c
+		LEFT JOIN invoice i ON c.customer_id = i.customer_id 
+		GROUP BY c.customer_id
+	),
+	max_ct AS (
+		SELECT 
+			country,
+			MAX(total_purchased) AS total_purchased
+		FROM ct 
+		GROUP BY country 
+	)
+SELECT
+	ct.country AS country,
+	ct.customer_name AS customer_name,
+	max_ct.total_purchased AS total_purchased
+FROM ct
+INNER JOIN max_ct ON ct.country = max_ct.country AND ct.total_purchased = max_ct.total_purchased
+ORDER BY ct.country
+;
+
+

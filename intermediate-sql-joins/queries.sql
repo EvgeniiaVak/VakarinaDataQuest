@@ -304,4 +304,65 @@ INNER JOIN max_ct ON ct.country = max_ct.country AND ct.total_purchased = max_ct
 ORDER BY ct.country
 ;
 
+SELECT 
+	il.track_id AS track_id,
+	sum(quantity) AS n_bought
+FROM invoice_line il 
+GROUP BY il.track_id
+;
 
+SELECT 
+	t.track_id AS track_id,
+	g.name AS genre
+FROM track t
+LEFT JOIN genre g ON g.genre_id = t.genre_id 
+;
+
+WITH 
+	c AS (
+		SELECT 
+			il.track_id AS track_id,
+			sum(quantity) AS n_bought
+		FROM invoice_line il 
+		GROUP BY il.track_id
+	),
+	g AS (
+		SELECT 
+			t.track_id AS track_id,
+			g.name AS genre
+		FROM track t
+		INNER JOIN genre g ON g.genre_id = t.genre_id 
+	)
+SELECT 
+	genre,
+	sum(n_bought) AS n_bought
+FROM g
+INNER JOIN c ON c.track_id = g.track_id
+WHERE 
+	genre LIKE '%Hip%Hop%'
+	OR 
+	genre LIKE '%Punk%'
+	OR 
+	genre LIKE '%Pop%'
+	OR 
+	genre LIKE '%Blues%'
+GROUP BY genre
+ORDER BY n_bought DESC 
+;
+
+SELECT DISTINCT name
+FROM genre 
+WHERE 
+	name LIKE '%Hip%Hop%'
+	OR 
+	name LIKE '%Punk%'
+	OR 
+	name LIKE '%Pop%'
+	OR 
+	name LIKE '%Blues%'
+ORDER BY name
+;
+
+SELECT DISTINCT name
+FROM genre 
+;

@@ -11,15 +11,15 @@ WHERE title = 'Sales Support Agent'
 
 SELECT 
 	e.first_name || ' ' || e.last_name AS name,
-	i.invoice_date,
 	sum(i.total) AS total
 FROM invoice i 
 INNER JOIN customer c
 	ON c.customer_id = i.customer_id 
 INNER JOIN employee e
 	ON e.employee_id = c.support_rep_id 
+WHERE i.invoice_date >= '2018-01-01 00:00:00'
 GROUP BY 
-	1,
-	2 
+	1
+ORDER BY 2 DESC
 ;
 

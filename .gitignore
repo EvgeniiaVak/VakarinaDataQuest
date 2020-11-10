@@ -234,3 +234,4 @@ cython_debug/
 # jupyter
 .local/
 .ipython/
+.jupyter/

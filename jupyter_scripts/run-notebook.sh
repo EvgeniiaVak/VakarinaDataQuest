@@ -3,5 +3,4 @@
 
 # docker run --rm -p 10000:8888 -e JUPYTER_ENABLE_LAB=yes -v "$PWD":/home/jovyan/work jupyter/datascience-notebook:9b06df75e445
 
-sudo docker run --name dataquestio-jupyter -p 8888:8888 -v "$PWD":/home/jovyan jupyter/datascience-notebook
-
+docker run --rm --name dataquestio-jupyter -p 8888:8888 -v "$PWD":/home/jovyan jupyter/datascience-notebook
